@@ -1,0 +1,508 @@
+require('dotenv').config();
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+const { Command } = require('commander');
+
+const mysql = require('mysql2/promise');
+
+const dbConfig = {
+  host: process.env.DB_HOST || 'localhost',
+  port: Number(process.env.DB_PORT || 3306),
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'inventory_db',
+};
+
+let dbPool;
+
+async function initDb() {
+  const maxRetries = 30;
+  const delayMs = 2000;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`Trying to connect to DB (attempt ${attempt}/${maxRetries})...`);
+      dbPool = mysql.createPool(dbConfig);
+      await dbPool.query('SELECT 1');
+      console.log('Connected to MySQL database');
+      return;
+    } catch (err) {
+      console.error(`DB connection failed (attempt ${attempt}):`, err.code || err.message);
+      if (attempt === maxRetries) {
+        throw err;
+      }
+      await new Promise((res) => setTimeout(res, delayMs));
+    }
+  }
+}
+
+const program = new Command();
+program
+  .name('inventory-service')
+  .helpOption('-H, --help', 'show help')
+  .addHelpCommand(false)
+  .requiredOption('-h, --host <host>', 'server host')
+  .requiredOption('-p, --port <port>', 'server port', (v) => parseInt(v, 10))
+  .requiredOption('-c, --cache <dir>', 'cache directory')
+  .parse(process.argv);
+
+const { host, port, cache } = program.opts();
+
+const cacheDir = path.resolve(cache);
+if (!fs.existsSync(cacheDir)) {
+  fs.mkdirSync(cacheDir, { recursive: true });
+}
+
+const server = http.createServer((req, res) => {
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'text/plain');
+  res.end('Inventory service is running\n');
+});
+
+const itemsDir = path.join(cacheDir, 'items');
+if (!fs.existsSync(itemsDir)) fs.mkdirSync(itemsDir, { recursive: true });
+
+function readBody(req) {
+  return new Promise((resolve) => {
+    const chunks = [];
+    req.on('data', (c) => chunks.push(c));
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+  });
+}
+
+function parseUrlEncoded(buf) {
+  const s = buf.toString();
+  const out = {};
+  s.split('&').forEach((pair) => {
+    if (!pair) return;
+    const [k, v] = pair.split('=');
+    const key = decodeURIComponent(k || '');
+    const val = decodeURIComponent(v || '');
+    out[key] = val;
+  });
+  return out;
+}
+
+function parseMultipart(buf, contentType) {
+  const m = /boundary=([^;]+)/i.exec(contentType || '');
+  if (!m) return {};
+  const boundary = '--' + m[1];
+  const parts = buf.toString('binary').split(boundary).slice(1, -1);
+  const result = {};
+  parts.forEach((p) => {
+    const idx = p.indexOf('\r\n\r\n');
+    if (idx === -1) return;
+    const head = p.slice(0, idx);
+    const body = p.slice(idx + 4, p.endsWith('\r\n') ? -2 : undefined);
+    const nameM = /name="([^"]+)"/i.exec(head);
+    const fileM = /filename="([^"]*)"/i.exec(head);
+    const contentTypeM = /Content-Type:\s*([^\r\n]+)/i.exec(head);
+    if (!nameM) return;
+    const name = nameM[1];
+    if (fileM && fileM[1] !== '') {
+      result[name] = {
+        filename: fileM[1],
+        contentType: contentTypeM ? contentTypeM[1].trim() : 'application/octet-stream',
+        buffer: Buffer.from(body, 'binary'),
+      };
+    } else {
+      result[name] = Buffer.from(body, 'binary').toString();
+    }
+  });
+  return result;
+}
+
+function itemPath(id) {
+  return path.join(itemsDir, `${id}.json`);
+}
+
+function photoPath(id) {
+  return path.join(itemsDir, `${id}.jpg`);
+}
+
+async function existsItem(id) {
+  const [rows] = await dbPool.execute(
+    'SELECT 1 FROM items WHERE id = ? LIMIT 1',
+    [id]
+  );
+  return rows.length > 0;
+}
+
+async function loadItem(id) {
+  const [rows] = await dbPool.execute(
+    'SELECT id, name, description, photo_url FROM items WHERE id = ?',
+    [id]
+  );
+  if (rows.length === 0) return null;
+  const row = rows[0];
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description || '',
+    photo: makePhotoUrl(row.id),
+  };
+}
+
+async function saveItem(obj) {
+  await dbPool.execute(
+    `
+    INSERT INTO items (id, name, description, photo_url)
+    VALUES (?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE
+      name = VALUES(name),
+      description = VALUES(description),
+      photo_url = VALUES(photo_url)
+    `,
+    [obj.id, obj.name, obj.description, obj.photo]
+  );
+}
+
+async function removeItem(id) {
+  const [result] = await dbPool.execute(
+    'DELETE FROM items WHERE id = ?',
+    [id]
+  );
+  if (fs.existsSync(photoPath(id))) {
+    fs.unlinkSync(photoPath(id));
+  }
+  return result.affectedRows > 0;
+}
+
+async function listItems() {
+  const [rows] = await dbPool.execute(
+    'SELECT id, name, description, photo_url FROM items'
+  );
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    description: row.description || '',
+    photo: makePhotoUrl(row.id),
+  }));
+}
+
+function makePhotoUrl(id) {
+  return `http://${host}:${port}/inventory/${id}/photo`;
+}
+
+const baseHandler = server.listeners('request')[0];
+server.removeAllListeners('request');
+server.on('request', async (req, res) => {
+  const url = new URL(req.url, `http://${req.headers.host || host + ':' + port}`);
+  const method = req.method || 'GET';
+
+  /**
+   * @route GET /docs
+   * @description Swagger documentation UI
+   * @returns {200} HTML page with Swagger UI
+   */
+  if (url.pathname === '/docs') {
+    const filePath = path.join(__dirname, 'docs', 'index.html');
+    if (!fs.existsSync(filePath)) {
+      res.statusCode = 404;
+      res.end('Docs not found\n');
+      return;
+    }
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    fs.createReadStream(filePath).pipe(res);
+    return;
+  }
+
+  /**
+   * @route GET /swagger.json
+   * @description Swagger OpenAPI JSON
+   * @returns {200} OpenAPI documentation
+   */
+  if (url.pathname === '/swagger.json') {
+    const filePath = path.join(__dirname, 'docs', 'swagger.json');
+    if (!fs.existsSync(filePath)) {
+      res.statusCode = 404;
+      res.end('Swagger not found\n');
+      return;
+    }
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    fs.createReadStream(filePath).pipe(res);
+    return;
+  }
+
+  /**
+   * @route GET /RegisterForm.html
+   * @description HTML форма реєстрації речі
+   * @returns {200} HTML
+   * @returns {404} Not Found
+   */
+  if (url.pathname === '/RegisterForm.html') {
+    if (method !== 'GET') {
+      res.statusCode = 405;
+      res.end();
+      return;
+    }
+    const filePath = path.resolve('RegisterForm.html');
+    if (!fs.existsSync(filePath)) {
+      res.statusCode = 404;
+      res.end();
+      return;
+    }
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    fs.createReadStream(filePath).pipe(res);
+    return;
+  }
+
+  /**
+   * @route GET /SearchForm.html
+   * @description HTML форма пошуку
+   * @returns {200} HTML
+   * @returns {404} Not Found
+   */
+  if (url.pathname === '/SearchForm.html') {
+    if (method !== 'GET') {
+      res.statusCode = 405;
+      res.end();
+      return;
+    }
+    const filePath = path.resolve('SearchForm.html');
+    if (!fs.existsSync(filePath)) {
+      res.statusCode = 404;
+      res.end();
+      return;
+    }
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    fs.createReadStream(filePath).pipe(res);
+    return;
+  }
+
+  /**
+   * @route POST /register
+   * @description Реєстрація нового інвентаря
+   * @returns {201} Created
+   * @returns {400} Bad Request
+   * @accept multipart/form-data
+   */
+  if (url.pathname === '/register') {
+    if (method !== 'POST') {
+      res.statusCode = 405;
+      res.end();
+      return;
+    }
+    const body = await readBody(req);
+    const ct = req.headers['content-type'] || '';
+    const form = parseMultipart(body, ct);
+    const name = typeof form.inventory_name === 'string' ? form.inventory_name.trim() : '';
+    if (!name) {
+      res.statusCode = 400;
+      res.end();
+      return;
+    }
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    const description = typeof form.description === 'string' ? form.description : '';
+    const item = { id, name, description, photo: makePhotoUrl(id) };
+    await saveItem(item);
+    if (form.photo && form.photo.buffer) {
+      fs.writeFileSync(photoPath(id), form.photo.buffer);
+    }
+    res.statusCode = 201;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.end(JSON.stringify(item));
+    return;
+  }
+
+  /**
+   * @route GET /inventory
+   * @description Отримати список всього інвентаря
+   * @returns {200} OK
+   */
+  if (url.pathname === '/inventory') {
+    if (method !== 'GET') {
+      res.statusCode = 405;
+      res.end();
+      return;
+    }
+    const items = (await listItems()).map((it) => ({
+      id: it.id,
+      name: it.name,
+      description: it.description,
+      photo: makePhotoUrl(it.id),
+    }));
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.end(JSON.stringify(items));
+    return;
+  }
+
+  /**
+   * @route GET /inventory/{id}
+   * @route PUT /inventory/{id}
+   * @route DELETE /inventory/{id}
+   * @description Робота з конкретним елементом інвентаря
+   * @returns {200} OK
+   * @returns {404} Not Found
+   */
+  if (/^\/inventory\/[^/]+$/.test(url.pathname)) {
+    const id = url.pathname.split('/')[2];
+    if (method === 'GET') {
+      if (!await existsItem(id)) {
+        res.statusCode = 404;
+        res.end();
+        return;
+      }
+      const it = await loadItem(id);
+      const out = {
+        id: it.id,
+        name: it.name,
+        description: it.description,
+        photo: makePhotoUrl(id),
+      };
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify(out));
+      return;
+    }
+    if (method === 'PUT') {
+      if (!await existsItem(id)) {
+        res.statusCode = 404;
+        res.end();
+        return;
+      }
+      const buf = await readBody(req);
+      let data = {};
+      try {
+        data = JSON.parse(buf.toString() || '{}');
+      } catch {}
+      const it = await loadItem(id);
+      if (typeof data.name === 'string') it.name = data.name;
+      if (typeof data.description === 'string') it.description = data.description;
+      await saveItem(it);
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify({ id: it.id, name: it.name, description: it.description, photo: makePhotoUrl(id) }));
+      return;
+    }
+    if (method === 'DELETE') {
+      if (!await existsItem(id)) {
+        res.statusCode = 404;
+        res.end();
+        return;
+      }
+      await removeItem(id);
+      res.statusCode = 200;
+      res.end();
+      return;
+    }
+    res.statusCode = 405;
+    res.end();
+    return;
+  }
+
+  /**
+   * @route GET /inventory/{id}/photo
+   * @route PUT /inventory/{id}/photo
+   * @description Робота з фото інвентаря
+   * @returns {200} OK
+   * @returns {404} Not Found
+   */
+  if (/^\/inventory\/[^/]+\/photo$/.test(url.pathname)) {
+    const id = url.pathname.split('/')[2];
+    if (method === 'GET') {
+      if (!await existsItem(id) || !fs.existsSync(photoPath(id))) {
+        res.statusCode = 404;
+        res.end();
+        return;
+      }
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'image/jpeg');
+      fs.createReadStream(photoPath(id)).pipe(res);
+      return;
+    }
+    if (method === 'PUT') {
+      if (!await existsItem(id)) {
+        res.statusCode = 404;
+        res.end();
+        return;
+      }
+      const body = await readBody(req);
+      const ct = req.headers['content-type'] || '';
+      if (ct.startsWith('multipart/form-data')) {
+        const form = parseMultipart(body, ct);
+        if (form.photo && form.photo.buffer) {
+          fs.writeFileSync(photoPath(id), form.photo.buffer);
+          res.statusCode = 200;
+          res.end();
+          return;
+        }
+        res.statusCode = 400;
+        res.end();
+        return;
+      } else {
+        fs.writeFileSync(photoPath(id), body);
+        res.statusCode = 200;
+        res.end();
+        return;
+      }
+    }
+    res.statusCode = 405;
+    res.end();
+    return;
+  }
+
+  /**
+   * @route POST /search
+   * @description Пошук інвентаря за ID
+   * @returns {200} OK
+   * @returns {404} Not Found
+   * @accept application/x-www-form-urlencoded
+   */
+  if (url.pathname === '/search') {
+    if (method !== 'POST') {
+      res.statusCode = 405;
+      res.end();
+      return;
+    }
+    const body = await readBody(req);
+    const ct = req.headers['content-type'] || '';
+    if (!ct.includes('application/x-www-form-urlencoded')) {
+      res.statusCode = 400;
+      res.end();
+      return;
+    }
+    const form = parseUrlEncoded(body);
+    const id = (form.id || '').trim();
+    if (!id || !await existsItem(id)) {
+      res.statusCode = 404;
+      res.end();
+      return;
+    }
+    const it = await loadItem(id);
+    const hasPhoto = !!(form.has_photo && form.has_photo !== 'false' && form.has_photo !== '0');
+    const payload = {
+      id: it.id,
+      name: it.name,
+      description: it.description,
+      photo: makePhotoUrl(id),
+    };
+    if (hasPhoto) payload.description = `${payload.description} ${payload.photo}`.trim();
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.end(JSON.stringify(payload));
+    return;
+  }
+
+  baseHandler(req, res);
+});
+
+async function start() {
+  try {
+    await initDb();
+    server.listen(port, host, () => {
+      console.log(`Server listening at http://${host}:${port}`);
+    });
+  } catch (err) {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  }
+}
+
+start();

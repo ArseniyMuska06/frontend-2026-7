@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  db:
+    image: mysql:8.4
+    container_name: inventory-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3308:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+  backend:
+    build: .
+    container_name: inventory-backend
+    restart: unless-stopped
+    depends_on:
+      - db
+    env_file:
+      - .env
+    working_dir: /usr/src/app
+    command: ["npm", "run", "dev:docker"]
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+      - ./cache:/usr/src/app/cache
+    ports:
+      - "${PORT}:${PORT}"
+      - "9229:9229"
+
+volumes:
+  db_data:
