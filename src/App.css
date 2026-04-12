@@ -1,0 +1,9 @@
+.inventory-table {
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+}
+
+.inventory-table img {
+    height: auto;
+    width: 100px;
+}

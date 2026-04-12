@@ -1,10 +1,16 @@
-import { useState } from 'react'
 import './App.css'
+import { Routes, Route } from 'react-router-dom'
+import Gallery from './pages/Gallery'
+import AdminInventory from './pages/AdminInventory'
 
 function App() {
+
   return (
     <>
-      <h1>Це сторінка</h1>
+      <Routes>
+        <Route path='/' element={<Gallery />} />
+        <Route path="/admin" element={<AdminInventory />} />
+      </Routes>
     </>
   )
 }

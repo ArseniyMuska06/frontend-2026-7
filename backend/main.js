@@ -182,12 +182,22 @@ async function listItems() {
 }
 
 function makePhotoUrl(id) {
-  return `http://${host}:${port}/inventory/${id}/photo`;
+  return `http://localhost:${port}/inventory/${id}/photo`;
 }
 
 const baseHandler = server.listeners('request')[0];
 server.removeAllListeners('request');
 server.on('request', async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    res.statusCode = 200;
+    res.end();
+    return;
+  }
+
   const url = new URL(req.url, `http://${req.headers.host || host + ':' + port}`);
   const method = req.method || 'GET';
 
