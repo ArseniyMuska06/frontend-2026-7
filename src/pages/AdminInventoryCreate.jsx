@@ -2,13 +2,19 @@ import '../App.css'
 import InventoryForm from '../components/inventory/InventoryForm'
 import { createItem, getInventoryList } from '../services/inventoryApi'
 import { useNavigate } from 'react-router-dom'
+import { useInventory } from '../store/StoreContext'
 
 function AdminInventoryCreate() {
     const navigate = useNavigate()
 
+    const { setInventory } = useInventory()
+
     function addItem(item, desc, photo) {
         createItem(item, desc, photo).then(() => {
-            navigate("/admin")
+            getInventoryList().then((data) => {
+                setInventory(data)
+                navigate("/admin")
+            })
         })
     }
 

@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import '../../App.css'
+import { useRef } from 'react'
 
 function InventoryForm({isCreate, itemFunc}) {
     const [name, setName] = useState("")
     const [desc, setDesc] = useState("")
     const [photo, setPhoto] = useState(null)
+
+    const fileInputRef = useRef(null)
 
     let submitContent = isCreate ? 'Створити' : 'Змінити'
 
@@ -12,6 +15,8 @@ function InventoryForm({isCreate, itemFunc}) {
         setName("")
         setDesc("")
         setPhoto(null)
+
+        fileInputRef.current.value = ""
     }
 
     return (
@@ -22,11 +27,11 @@ function InventoryForm({isCreate, itemFunc}) {
             }}>
                 <p>
                     <label htmlFor="item-name">Назва предмету:</label>
-                    <input value={name} onChange={(e) => {setName(e.target.value)}} required type="text" name="item-name" id="item-name" />
+                    <input required value={name} onChange={(e) => {setName(e.target.value)}} type="text" name="item-name" id="item-name" />
                 </p>
                 <p>
                     <label htmlFor="item-file">Фото предмету:</label>
-                    <input onChange={(e) => {setPhoto(e.target.files[0])}} type="file" name="item-file" id="item-file" />
+                    <input ref={fileInputRef} onChange={(e) => {setPhoto(e.target.files[0])}} type="file" name="item-file" id="item-file" />
                 </p>
                 <p>
                     <label htmlFor="item-desc">Опис:</label>
