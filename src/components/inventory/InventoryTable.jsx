@@ -27,6 +27,10 @@ function InventoryTable() {
 
     return (
         <div className='inventory-table'>
+            <p>Фото</p>
+            <p>Назва предмету</p>
+            <p>Опис</p>
+            <p>Дії</p>
             {table}
         </div>
     )
