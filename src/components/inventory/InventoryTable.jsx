@@ -1,7 +1,9 @@
 import '../../App.css'
 import { useInventory } from '../../store/StoreContext'
+import { useNavigate } from 'react-router-dom'
 
 function InventoryTable() {
+    const navigate = useNavigate()
     const { inventory } = useInventory()
 
     let table;
@@ -16,7 +18,7 @@ function InventoryTable() {
                     <p key={index}>{item.name}</p>
                     <p key={index}>{item.description}</p>
                     <div>
-                        <button>Перег.</button>
+                        <button onClick={() => navigate(`/admin/inventory/${item.id}`)}>Перег.</button>
                         <button>Ред.</button>
                         <button>Вид.</button>
                     </div>
