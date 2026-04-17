@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import '../../App.css'
 import { useRef } from 'react'
+import ConfirmModal from './ConfirmModal'
 
 function InventoryForm({isCreate, itemFunc}) {
     const [name, setName] = useState("")
@@ -19,12 +20,15 @@ function InventoryForm({isCreate, itemFunc}) {
         fileInputRef.current.value = ""
     }
 
+    const [showModal, setShowModal] = useState(false)
+
     return (
         <>
             <form onSubmit={(e) => {
                 e.preventDefault()
-                itemFunc(name, desc, photo)
+                setShowModal(true)
             }}>
+                <ConfirmModal actionName={submitContent} actionFunc={() => itemFunc(name, desc, photo)} showModal={showModal} setShowModal={setShowModal} />
                 <p>
                     <label htmlFor="item-name">Назва предмету:</label>
                     <input required value={name} onChange={(e) => {setName(e.target.value)}} type="text" name="item-name" id="item-name" />
