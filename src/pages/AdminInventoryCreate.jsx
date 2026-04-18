@@ -21,7 +21,7 @@ function AdminInventoryCreate() {
     return (
         <>
             <h1>Створити предмет</h1>
-            <InventoryForm isCreate={true} itemFunc={addItem} />
+            <InventoryForm item_id={null} isCreate={true} itemFunc={addItem} />
         </>
     )
 }

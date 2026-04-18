@@ -19,7 +19,7 @@ function InventoryTable() {
                     <p key={index}>{item.description}</p>
                     <div>
                         <button onClick={() => navigate(`/admin/inventory/${item.id}`)}>Перег.</button>
-                        <button>Ред.</button>
+                        <button onClick={() => navigate(`/admin/edit/${item.id}`)}>Ред.</button>
                         <button>Вид.</button>
                     </div>
                 </>
