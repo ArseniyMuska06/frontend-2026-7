@@ -6,7 +6,7 @@ import ConfirmModal from './ConfirmModal'
 import { useState } from 'react'
 
 function InventoryTable() {
-    const { inventory, setInventory } = useInventory()
+    const { inventory, setInventory, loading, error } = useInventory()
 
     function Delete(item_id) {
         deleteItem(item_id).then(() => {
@@ -22,15 +22,19 @@ function InventoryTable() {
 
     let table;
 
-    if (inventory.length === 0) {
+    if (loading) {
+        table = <p>Завантаження предметів</p>
+    } else if (error) {
+        table = <p>{error}</p>
+    } else if (inventory.length === 0) {
         table = <p>Нема предметів</p>
     } else {
         table = inventory.map((item, index) => {
             return (
                 <> 
                     <img src={item.photo} alt="Item Photo" />
-                    <p key={index}>{item.name}</p>
-                    <p key={index}>{item.description}</p>
+                    <p>{item.name}</p>
+                    <p>{item.description}</p>
                     <div>
                         <button onClick={() => navigate(`/admin/inventory/${item.id}`)}>Перег.</button>
                         <button onClick={() => navigate(`/admin/edit/${item.id}`)}>Ред.</button>

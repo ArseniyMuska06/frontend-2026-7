@@ -29,7 +29,12 @@ export function createItem(name, desc, photo) {
   return fetch(`${BACK_URL}/register`, {
     method: "POST",
     body: formData
-  }).then(res => res.json())
+  }).then(res => {
+    if (!res.ok) {
+      throw new Error("Помилка під час створення предмету")
+    }
+    return res.json()
+  })
 }
 
 export function updateItemInfo(item_id, name, desc) {
