@@ -8,7 +8,10 @@ function ConfirmModal({actionName, actionFunc, showModal, setShowModal}) {
                 <div className='confirm-modal'>
                     <p>Ви впевнені що хочете {actionName.toLowerCase()} елемент?</p>
                     <div>
-                        <button onClick={() => actionFunc()}>Так</button>
+                        <button onClick={() => {
+                            actionFunc()
+                            setShowModal(false)
+                        }}>Так</button>
                         <button onClick={() => setShowModal(false)}>Скасувати</button>
                     </div>
                 </div>

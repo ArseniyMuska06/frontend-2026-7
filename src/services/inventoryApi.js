@@ -10,6 +10,16 @@ export function getItem(item_id) {
     .then(res => res.json())
 }
 
+export function deleteItem(item_id) {
+  return fetch(`${BACK_URL}/inventory/${item_id}`, {
+    method: "DELETE"
+  }).then(res => {
+    if (!res.ok) {
+      throw new Error("Delete failed")
+    }
+  })
+}
+
 export function createItem(name, desc, photo) {
   const formData = new FormData()
   formData.append("inventory_name", name)
