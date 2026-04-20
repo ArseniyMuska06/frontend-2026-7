@@ -1,7 +1,7 @@
 import '../App.css'
 import InventoryForm from '../components/inventory/InventoryForm'
 import { createItem, getInventoryList } from '../services/inventoryApi'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useInventory } from '../store/StoreContext'
 
 function AdminInventoryCreate() {
@@ -20,8 +20,14 @@ function AdminInventoryCreate() {
 
     return (
         <>
-            <h1>Створити предмет</h1>
-            <InventoryForm item_id={null} isCreate={true} itemFunc={addItem} />
+            <div className='form-body'>
+                <header>
+                    <Link className="back-to-panel" to="/admin">Назад</Link>
+                </header>
+                <main>
+                    <InventoryForm item_id={null} isCreate={true} itemFunc={addItem} />
+                </main>
+            </div>
         </>
     )
 }

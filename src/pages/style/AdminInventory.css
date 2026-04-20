@@ -1,0 +1,129 @@
+.inventory-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+
+.inventory-header h1 {
+    font-weight: 500;
+}
+
+.add-item-button {
+    padding: 0.75rem 1.25rem;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    color: white;
+    background-color: #4f39f6;
+    transition-property: background;
+    transition-duration: 0.1s;
+    transition-timing-function: ease;
+}
+
+.add-item-button:hover {
+    background-color: #432dd7;
+}
+
+.inventory-table {
+    margin: 0.25rem;
+    box-shadow: 0 0 4px rgb(200, 200, 200);
+    font-size: 10pt;
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    border: 1px solid transparent;
+    border-radius: 15px;
+}
+
+.inventory-table th {
+    color: #4a5565;
+    text-align: left;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.inventory-table tr {
+    border-top: 1px solid #e4e6eb;
+    display: grid;
+    grid-template-columns: 100px 0.8fr 1.2fr 1fr;
+    align-items: center;
+}
+
+.inventory-table tr:has(th) {
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    border-top: none;
+    background-color: #f9fafb;
+}
+
+.inventory-table tr:has(td) {
+    transition-property: background;
+    transition-duration: 0.2s;
+    transition-timing-function: ease;
+}
+
+.inventory-table tr:has(td):hover {
+    background-color: #f9fafb;
+}
+
+.inventory-table th,
+.inventory-table td {
+    padding: 1rem 1.25rem;
+}
+
+.inventory-table td img {
+    height: 60px;
+    width: 60px;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 10px;
+}
+
+.td-name {
+    font-weight: 500;
+}
+
+.td-desc {
+    color: hsl(217, 16%, 23%);
+}
+
+.actions-td {
+    display: flex;
+    justify-content: right;
+}
+
+.actions-menu {
+    display: flex;
+    gap: 1.25rem;
+}
+
+.actions-menu button {
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    border: none;
+    background-color: transparent;
+    background-size: contain;
+    background-position: center;
+}
+
+.view-button {
+    background-image: url('../../assets/page-icons/eye-icon.svg');
+}
+
+.edit-button {
+    background-image: url('../../assets/page-icons/pen-icon.svg');
+}
+
+.delete-button {
+    background-image: url('../../assets/page-icons/trash-icon.svg');
+}
+
+@media screen and (max-width: 625px) {
+    .inventory-table {
+        min-width: 625px;
+    }
+
+    .table-wrapper {
+        overflow-x: scroll;
+    }
+}

@@ -1,0 +1,53 @@
+.detail-body {
+    margin: 0 auto;
+    max-width: 920px;
+}
+
+.back-to-panel {
+    color: #4a556b;
+    text-decoration: none;
+    cursor: default;
+    font-weight: 500;
+}
+
+.back-to-panel:hover {
+    color: black;
+}
+
+header {
+    margin-bottom: 1.5rem;
+}
+
+.item-details {
+    box-shadow: 0 0 4px rgb(200, 200, 200);
+    background-color: white;
+    border-radius: 15px;
+}
+
+.item-details img {
+    width: 100%;
+    height: auto;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+}
+
+.item-details h1 {
+    font-weight: 600;
+}
+
+.item-details p {
+    color: #364153;
+}
+
+.detail-desc {
+    text-transform: uppercase;
+    font-weight: 500;
+    font-size: 11pt;
+}
+
+.item-details div {
+    padding: 1.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}

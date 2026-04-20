@@ -6,11 +6,12 @@ function ConfirmModal({actionName, actionFunc, showModal, setShowModal}) {
         content = (
             <div className='confirm-screen'>
                 <div className='confirm-modal'>
-                    <p>Ви впевнені що хочете {actionName.toLowerCase()} елемент?</p>
+                    <p>Ви впевнені що хочете {actionName.toLowerCase()} елемент? <br />
+                    Цю дію неможливо буде скасувати</p>
                     <div>
-                        <button onClick={() => {
+                        <button class="action-button" onClick={() => {
                             try {
-                                await actionFunc()
+                                actionFunc()
                                 setShowModal(false)
                             } catch(err) {
                                 alert("Помилка: " + err)

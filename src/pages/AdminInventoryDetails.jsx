@@ -1,6 +1,7 @@
 import '../App.css'
+import './style/AdminInventoryDetails.css'
 import InventoryDetails from '../components/inventory/InventoryDetails'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useParams } from "react-router-dom"
 
 function AdminInventoryDetails({item_id}) {
@@ -10,9 +11,14 @@ function AdminInventoryDetails({item_id}) {
 
     return (
         <>
-            <h1>Детальний опис предмету</h1>
-            <button onClick={() => navigate('/admin')}>Назад</button>
-            <InventoryDetails item_id={id} />
+            <div class="detail-body">
+                <header>
+                    <Link className="back-to-panel" to="/admin">Назад</Link>
+                </header>
+                <main>
+                    <InventoryDetails item_id={id} />
+                </main>
+            </div>
         </>
     )
 }

@@ -1,0 +1,101 @@
+.form-body {
+    margin: 0 auto;
+    max-width: 920px;
+}
+
+label, input {
+    display: block;
+}
+
+textarea {
+    font: inherit;
+    resize: none;
+}
+
+.back-to-panel {
+    color: #4a556b;
+    text-decoration: none;
+    cursor: default;
+    font-weight: 500;
+}
+
+.back-to-panel:hover {
+    color: black;
+}
+
+header {
+    margin-bottom: 1.5rem;
+}
+
+form {
+    box-shadow: 0 0 4px rgb(200, 200, 200);
+    padding: 2rem;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    border-radius: 15px;
+}
+
+form input,
+form textarea {
+    padding: 0.75rem;
+    border: 1px solid #d1d5dc;
+    border-radius: 10px;
+}
+
+form input:focus,
+form textarea:focus {
+    outline: 3px solid #615fff;
+    transition-property: outline;
+    transition-duration: 0.2s;
+    transition-timing-function: ease;
+}
+
+form h1 {
+    margin-bottom: 2rem;
+}
+
+form p {
+    display: grid;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+form p button {
+    padding: 1rem 0;
+    border: 1px solid #d1d5dc;
+    border-radius: 10px;
+    background-color: white;
+    transition-property: background;
+    transition-duration: 0.2s;
+    transition-timing-function: ease;
+}
+
+form p button:hover {
+    background-color: #f9fafb;
+}
+
+form p .action-button {
+    border: 1px solid transparent;
+    color: white;
+    background-color: #4f39f6;
+}
+
+form p .action-button:hover {
+    background-color: #432dd7;
+}
+
+form p .clear-button {
+    border-color: transparent;
+    background-color: white;
+}   
+
+form p .clear-button:hover {
+    background-color: hsl(210, 20%, 95%);
+}
+
+form p:has(button) {
+    margin-top: 1.25rem;
+    grid-template-columns: 1fr 1fr 100px;
+}

@@ -1,7 +1,7 @@
 import '../App.css'
 import InventoryForm from '../components/inventory/InventoryForm'
 import { updateItemInfo, updateItemPhoto, getInventoryList } from '../services/inventoryApi'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useParams } from "react-router-dom"
 import { useInventory } from '../store/StoreContext'
 
@@ -32,8 +32,14 @@ function AdminInventoryEdit() {
 
     return (
         <>
-            <h1>Редагувати предмет</h1>
-            <InventoryForm item_id={id} isCreate={false} itemFunc={editItem} />
+            <div className='form-body'>
+                <header>
+                    <Link className="back-to-panel" to="/admin">Назад</Link>
+                </header>
+                <main>
+                    <InventoryForm item_id={id} isCreate={false} itemFunc={editItem} />
+                </main>
+            </div>
         </>
     )
 }

@@ -1,11 +1,22 @@
-.inventory-table {
-    display: grid;
-    grid-template-columns: repeat(4, auto);
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-.inventory-table img {
-    height: auto;
-    width: 100px;
+body {
+    font-family: 'Inter', 'Arial', sans-serif;
+    background-color: #f9fafb;
+    margin: 0 auto;
+    padding: 1.5rem;
+    max-width: 1280px;
+}
+
+button,
+input {
+    font: inherit;
 }
 
 .confirm-screen {
@@ -21,5 +32,41 @@
 }
 
 .confirm-modal {
+    box-shadow: 0 0 20px rgb(106, 106, 106);
+    padding: 1.25rem;
+    line-height: 1.5;
     background-color: white;
+    color: #4a5565;
+    border-radius: 10px;
+}
+
+.confirm-modal div {
+    margin-top: 1.25rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.confirm-modal div button {
+    width: 100%;
+    padding: 0.7rem 0;
+    border: 1px solid #d1d5dc;
+    border-radius: 10px;
+    background-color: white;
+    transition-property: background;
+    transition-duration: 0.1s;
+    transition-timing-function: ease;
+}
+
+.confirm-modal div button:hover {
+    background-color: #f9fafb;
+}
+
+.confirm-modal .action-button {
+    border: 1px solid transparent;
+    color: white;
+    background-color: #4f39f6;
+}
+
+.confirm-modal .action-button:hover {
+    background-color: #432dd7;
 }

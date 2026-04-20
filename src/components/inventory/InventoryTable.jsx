@@ -20,46 +20,75 @@ function InventoryTable() {
     const [showModal, setShowModal] = useState(false)
     const [selectedItemId, setSelectedItemId] = useState(null)
 
-    let table;
+    let table
+    let content
 
     if (loading) {
-        table = <p>Завантаження предметів</p>
+        content = <p>Завантаження предметів</p>
     } else if (error) {
-        table = <p>{error}</p>
+        content = <p>{error}</p>
     } else if (inventory.length === 0) {
-        table = <p>Нема предметів</p>
+        content = <p>Нема предметів</p>
     } else {
         table = inventory.map((item, index) => {
             return (
                 <> 
-                    <img src={item.photo} alt="Item Photo" />
-                    <p>{item.name}</p>
-                    <p>{item.description}</p>
-                    <div>
-                        <button onClick={() => navigate(`/admin/inventory/${item.id}`)}>Перег.</button>
-                        <button onClick={() => navigate(`/admin/edit/${item.id}`)}>Ред.</button>
-                        <button onClick={() => {
-                            setSelectedItemId(item.id)
-                            setShowModal(true)
-                        }}>Вид.</button>
-                    </div>
+                    <tr>
+                        <td>
+                            <img src={item.photo} alt="Item Photo" />
+                        </td>
+                        <td className="td-name">
+                            <p>{item.name}</p>
+                        </td>
+                        <td className="td-desc">
+                            <p>{item.description}</p>
+                        </td>
+                        <td className="actions-td">
+                            <div className="actions-menu">
+                                <button className="view-button" onClick={() => navigate(`/admin/inventory/${item.id}`)}></button>
+                                <button className="edit-button" onClick={() => navigate(`/admin/edit/${item.id}`)}></button>
+                                <button className="delete-button" onClick={() => {
+                                    setSelectedItemId(item.id)
+                                    setShowModal(true)
+                                }}></button>
+                            </div>
+                        </td>
+                    </tr>
                 </>
             )
         })
+
+        content = (
+            <>
+                <ConfirmModal actionName={"Видалити"} actionFunc={() => Delete(selectedItemId)} showModal={showModal} setShowModal={setShowModal} />
+                <div className="table-wrapper">
+                    <table className='inventory-table'>
+                        <thead>
+                            <tr>
+                                <th className="photo-th">
+                                    <p>Фото</p>
+                                </th>
+                                <th>
+                                    <p>Назва предмету</p>
+                                </th>
+                                <th>
+                                    <p>Опис</p>
+                                </th>
+                                <th className="actions-td">
+                                    <p>Дії</p>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {table}
+                        </tbody>
+                    </table>
+                </div>
+            </>
+        )
     }
 
-    return (
-        <>
-            <ConfirmModal actionName={"Видалити"} actionFunc={() => Delete(selectedItemId)} showModal={showModal} setShowModal={setShowModal} />
-            <div className='inventory-table'>
-                <p>Фото</p>
-                <p>Назва предмету</p>
-                <p>Опис</p>
-                <p>Дії</p>
-                {table}
-            </div>
-        </>
-    )
+    return content
 }
 
 export default InventoryTable

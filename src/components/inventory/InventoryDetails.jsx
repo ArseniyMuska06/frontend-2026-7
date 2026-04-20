@@ -22,10 +22,13 @@ function InventoryDetails({item_id}) {
         )
     } else {
         return (
-            <div>
+            <div className="item-details">
                 <img src={item.photo} alt="Item Image" />
-                <p>{item.name}</p>
-                <p>{item.description}</p>
+                <div>
+                    <h1>{item.name}</h1>
+                    <p className="detail-desc">Опис</p>
+                    <p>{item.description}</p>
+                </div>
             </div>
         )
     }

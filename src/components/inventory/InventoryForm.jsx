@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import '../../App.css'
+import './style/InventoryForm.css'
 import { useRef } from 'react'
 import ConfirmModal from './ConfirmModal'
 import { getItem } from '../../services/inventoryApi'
@@ -41,10 +42,11 @@ function InventoryForm({item_id, isCreate, itemFunc}) {
                 e.preventDefault()
                 setShowModal(true)
             }}>
+                <h1>{submitContent} предмет</h1>
                 <ConfirmModal actionName={submitContent} actionFunc={() => itemFunc(name, desc, photo)} showModal={showModal} setShowModal={setShowModal} />
                 <p>
                     <label htmlFor="item-name">Назва предмету:</label>
-                    <input required value={name} onChange={(e) => {setName(e.target.value)}} type="text" name="item-name" id="item-name" />
+                    <input required value={name} onChange={(e) => {setName(e.target.value)}} type="text" name="item-name" id="item-name" placeholder="Введіть назву предмету" />
                 </p>
                 <p>
                     <label htmlFor="item-file">Фото предмету:</label>
@@ -52,12 +54,12 @@ function InventoryForm({item_id, isCreate, itemFunc}) {
                 </p>
                 <p>
                     <label htmlFor="item-desc">Опис:</label>
-                    <textarea value={desc} onChange={(e) => {setDesc(e.target.value)}} name="item-desc" id="item-desc"></textarea>
+                    <textarea value={desc} onChange={(e) => {setDesc(e.target.value)}} name="item-desc" id="item-desc" rows="7" placeholder="Введіть опис предмету"></textarea>
                 </p>
                 <p>
+                    <button class="action-button" type='submit'>{submitContent}</button>
                     <button onClick={() => navigate('/admin')} type='button'>Скасувати</button>
-                    <button onClick={() => resetForm()} type='button'>Очистити</button>
-                    <button type='submit'>{submitContent}</button>
+                    <button class="clear-button" onClick={() => resetForm()} type='button'>Очистити</button>
                 </p>
             </form>
         </>
