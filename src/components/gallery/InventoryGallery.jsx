@@ -15,7 +15,7 @@ function InventoryGallery() {
         gallery = (
             <div className='gallery-table'>
                 {inventory.map((item, index) => {
-                    return <InventoryCard id={item.id} image={item.photo} name={item.name} desc={item.description} />
+                    return <InventoryCard id={item.id} image={item.photo} name={item.name} desc={item.description} isFav={false} />
                 })}
             </div>
         )

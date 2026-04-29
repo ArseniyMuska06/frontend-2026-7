@@ -3,14 +3,26 @@ import QuickView from './InventoryQuickView'
 import { useState } from 'react'
 import { addToLocalStorage } from '../../hooks/useFavorites'
 
-function InventoryCard({id, image, name, desc}) {
+function InventoryCard({id, image, name, desc, isFav}) {
     const [modalState, useModalState] = useState(false)
     let modal
 
     if (modalState) {
-        modal = <QuickView id={id} image={image} name={name} desc={desc} close={() => useModalState(false)} />
+        modal = <QuickView id={id} image={image} name={name} desc={desc} close={() => useModalState(false)} isFav={isFav} />
     } else {
         modal = null
+    }
+
+    let actionButton
+    if (isFav) {
+        actionButton = <button>X</button>
+    } else {
+        actionButton = (
+        <button onClick={(e) => {
+                e.stopPropagation();
+                addToLocalStorage(id, image, name, desc)
+            }}>❤</button>
+        )
     }
 
     return (
@@ -20,10 +32,7 @@ function InventoryCard({id, image, name, desc}) {
                 <img src={image} alt="Card Image" />
                 <div>
                     <p>{name}</p>
-                    <button onClick={(e) => {
-                        e.stopPropagation();
-                        addToLocalStorage(id, image, name, desc)
-                    }}>❤</button>
+                    {actionButton}
                 </div>
             </div>
         </>

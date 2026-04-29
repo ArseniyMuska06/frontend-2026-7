@@ -1,10 +1,18 @@
 import './style/Gallery.css'
 import { addToLocalStorage } from '../../hooks/useFavorites'
 
-function QuickView({id, image, name, desc, close}) {
+function QuickView({id, image, name, desc, close, isFav}) {
     function addToFav() {
         addToLocalStorage(id, image, name, desc)
         close()
+    }
+
+    let actionButton
+
+    if (isFav) {
+        actionButton = <button>Прибрати</button>
+    } else {
+        actionButton = <button onClick={() => addToFav()}>В улюблене</button>
     }
 
     return (
@@ -15,7 +23,7 @@ function QuickView({id, image, name, desc, close}) {
                 <div>
                     <h2>{name}</h2>
                     <p>{desc}</p>
-                    <button onClick={() => addToFav()}>В улюблене</button>
+                    {actionButton}
                 </div>
             </div>
         </div>
