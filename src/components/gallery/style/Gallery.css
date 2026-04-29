@@ -1,0 +1,58 @@
+.gallery-card {
+    background-color: grey;
+    padding: 0.5rem;
+    cursor: pointer;
+}
+
+.gallery-card img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    object-position: center;
+}
+
+.gallery-table {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.quick-view-mode {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.288);
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.quick-view-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+}
+
+.card-modal {
+    position: relative;
+    max-height: 450px;
+    width: 100%;
+    max-width: 600px;
+    background-color: white;
+    display: grid;
+    grid-template-columns: auto 1fr;
+}
+
+.card-modal img {
+    width: 100%;
+    max-width: 300px;
+    height: 100vh;
+    max-height: 450px;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    object-position: center;
+}

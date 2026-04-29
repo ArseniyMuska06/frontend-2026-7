@@ -1,10 +1,11 @@
 import '../App.css'
+import InventoryGallery from '../components/gallery/InventoryGallery'
 
 function Gallery() {
     return (
         <>
-            <h1>Це сторінка користувацької частини застосунку, яка зараз у розробці</h1>
-            <p>Для переходу до адмін-панелі пишіть /admin</p>
+            <h1>Галерея</h1>
+            <InventoryGallery />
         </>
     ) 
 }
