@@ -2,6 +2,7 @@ import '../components/gallery/style/Gallery.css'
 import { favouriteItemInventory } from '../hooks/useFavorites'
 import { useEffect, useState } from 'react'
 import InventoryCard from '../components/gallery/InventoryCard'
+import FavoritesBar from '../components/gallery/FavoritesBar'
 
 function FavouritesGallery() {
     const [favInventory, setFavInventory] = useState([])
@@ -28,6 +29,7 @@ function FavouritesGallery() {
     return (
         <>
             <h1>Улюблені предмети</h1>
+            <FavoritesBar isFav={true} />
             {gallery}
         </>
     )

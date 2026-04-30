@@ -1,5 +1,5 @@
 import './style/Gallery.css'
-import { addToLocalStorage } from '../../hooks/useFavorites'
+import { addToLocalStorage, removeFromLocalStorage } from '../../hooks/useFavorites'
 
 function QuickView({id, image, name, desc, close, isFav}) {
     function addToFav() {
@@ -7,10 +7,16 @@ function QuickView({id, image, name, desc, close, isFav}) {
         close()
     }
 
+    function removeFromFav() {
+        removeFromLocalStorage(id, image, name, desc)
+        close()
+        window.location.reload();
+    }
+
     let actionButton
 
     if (isFav) {
-        actionButton = <button>Прибрати</button>
+        actionButton = <button onClick={() => removeFromFav()}>Прибрати</button>
     } else {
         actionButton = <button onClick={() => addToFav()}>В улюблене</button>
     }

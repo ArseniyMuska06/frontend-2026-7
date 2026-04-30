@@ -1,7 +1,7 @@
 import './style/Gallery.css'
 import QuickView from './InventoryQuickView'
 import { useState } from 'react'
-import { addToLocalStorage } from '../../hooks/useFavorites'
+import { addToLocalStorage, removeFromLocalStorage } from '../../hooks/useFavorites'
 
 function InventoryCard({id, image, name, desc, isFav}) {
     const [modalState, useModalState] = useState(false)
@@ -15,7 +15,13 @@ function InventoryCard({id, image, name, desc, isFav}) {
 
     let actionButton
     if (isFav) {
-        actionButton = <button>X</button>
+        actionButton = (
+            <button onClick={(e) => {
+                e.stopPropagation();
+                removeFromLocalStorage(id, image, name, desc)
+                window.location.reload();
+            }}>X</button>
+        )
     } else {
         actionButton = (
         <button onClick={(e) => {

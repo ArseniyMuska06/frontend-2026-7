@@ -19,6 +19,26 @@ export function addToLocalStorage(id, photo, name, desc) {
     Action(n)
 }
 
+export function removeFromLocalStorage(id, photo, name, desc) {
+    function Action(n) {
+        localStorage.removeItem(`Fav_item${n}_id`)
+        localStorage.removeItem(`Fav_item${n}_photo`)
+        localStorage.removeItem(`Fav_item${n}_name`)
+        localStorage.removeItem(`Fav_item${n}_desc`)
+    }
+    
+    let n = 1
+
+    while (localStorage.getItem(`Fav_item${n}_id`)) {
+            if (localStorage.getItem(`Fav_item${n}_id`) == id) {
+                Action(n)
+                return
+            } else {
+                n++
+            }
+        }
+}
+
 export function favouriteItemInventory() {
     let inventory = []
 
